@@ -4,6 +4,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const GitHubStrategy = require('passport-github').Strategy;
+const path = require('path');
 
 const port = 3000;
 
@@ -37,8 +38,7 @@ connectToDatabase();
 app.use(session({ secret: 'your secret', resave: false, saveUninitialized: true }));
 app.use(express.static('public'));
 app.use(express.json());
-
-
+app.use(express.static(path.join(__dirname, 'client/build')));
 
 passport.use(new GitHubStrategy({
     clientID: 'Ov23ctRmiXeXnDnlKpYU',
@@ -249,6 +249,10 @@ app.get('/data', async (req, res) => {
         console.error('Error fetching data:', err);
         res.status(500).send('Error fetching data');
     }
+});
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
 
 app.listen(port, () => {
