@@ -2,6 +2,8 @@ const express = require('express');
 const session = require('express-session');
 const { MongoClient, ObjectId } = require('mongodb');
 const bodyParser = require('body-parser');
+const passport = require('passport');
+const GitHubStrategy = require('passport-github').Strategy;
 
 const port = 3000;
 
@@ -11,6 +13,7 @@ app.use(bodyParser.json());
 const mongoUrl = 'mongodb://localhost:27017/';
 const dbName = 'a4';
 let collection;
+
 
 async function connectToDatabase() {
     try {
@@ -37,6 +40,73 @@ app.use(express.json());
 
 
 
+passport.use(new GitHubStrategy({
+    clientID: 'Ov23ctRmiXeXnDnlKpYU',
+    clientSecret: 'c22a4a1d34161a0941173507410cc1745e069fa6',
+    callbackURL: 'http://localhost:3000/auth/github/callback'
+},
+    async (accessToken, refreshToken, profile, done) => {
+        try {
+            let user = await collection.findOne({ githubId: profile.id });
+            if (!user) {
+                user = await collection.insertOne({ username: profile.username, githubId: profile.id });
+            }
+            console.log('GitHub user:', user);
+            return done(null, user);
+        } catch (err) {
+            return done(err);
+        }
+    }
+));
+
+passport.serializeUser((user, done) => {
+    if (user && user._id) {
+        console.log('Serializing user:', user._id);
+        done(null, user._id);
+    } else {
+        console.error('Failed to serialize user:', user);
+        done(new Error('Failed to serialize user'));
+    }
+});
+
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await collection.findOne({ _id: new ObjectId(id) });
+        done(null, user);
+    } catch (err) {
+        done(err);
+    }
+});
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+app.get('/auth/github',
+    passport.authenticate('github'));
+
+app.get('/auth/github/callback',
+    passport.authenticate('github', { failureRedirect: '/' }),
+    (req, res) => {
+        // Store the GitHub username and GitHub ID in the session
+        req.session.username = req.user.username;
+        req.session.password = req.user.githubId;
+        res.redirect('/');
+    });
+
+app.get('/session', (req, res) => {
+    if (req.session.username && req.session.password) {
+        res.json({ username: req.session.username, password: req.session.password });
+    } else {
+        res.status(401).send('No session data');
+    }
+});
+
+app.get('/logout', (req, res) => {
+    req.logout();
+    res.redirect('/');
+});
+
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
     if (!collection) {
@@ -60,13 +130,19 @@ app.post('/register', async (req, res) => {
 
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
+
     if (!collection) {
         console.error('Database not initialized');
         return res.status(500).send('Database not initialized');
     }
     try {
-        const user = await collection.findOne({ username, password });
-        if (user) {
+        const user = await collection.findOne({
+            username,
+            $or: [
+                { password },
+                { githubId: password }
+            ]
+        }); if (user) {
             req.session.user = user;
             res.status(200).send('Login successful');
         } else {
@@ -77,6 +153,7 @@ app.post('/login', async (req, res) => {
         res.status(500).send('Error logging in');
     }
 });
+
 
 
 app.get('/', (req, res) => {

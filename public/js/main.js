@@ -12,6 +12,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector("#login-form").addEventListener("submit", loginOrRegisterUser);
     document.querySelector("#book-form").addEventListener("submit", addBook);
     document.querySelector("#logout-button").addEventListener("click", logoutUser);
+    document.querySelector("#github-login-button").addEventListener("click", () => {
+        window.location.href = "/auth/github";
+    });
 });
 
 const autoLogin = async function (username, password) {
@@ -34,6 +37,33 @@ const autoLogin = async function (username, password) {
         localStorage.removeItem("password");
     }
 };
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const storedUsername = localStorage.getItem("username");
+    const storedPassword = localStorage.getItem("password");
+
+    if (storedUsername && storedPassword) {
+        await autoLogin(storedUsername, storedPassword);
+    } else {
+        // Check if the session contains GitHub login data
+        const response = await fetch("/session");
+        if (response.ok) {
+            const sessionData = await response.json();
+            if (sessionData.username && sessionData.password) {
+                localStorage.setItem("username", sessionData.username);
+                localStorage.setItem("password", sessionData.password);
+                await autoLogin(sessionData.username, sessionData.password);
+            }
+        }
+    }
+
+    document.querySelector("#login-form").addEventListener("submit", loginOrRegisterUser);
+    document.querySelector("#book-form").addEventListener("submit", addBook);
+    document.querySelector("#logout-button").addEventListener("click", logoutUser);
+    document.querySelector("#github-login-button").addEventListener("click", () => {
+        window.location.href = "/auth/github";
+    });
+});
 
 const loginOrRegisterUser = async function (event) {
     event.preventDefault();
