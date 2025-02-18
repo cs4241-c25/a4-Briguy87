@@ -157,7 +157,7 @@ app.post('/login', async (req, res) => {
 
 
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
+    res.sendFile(__dirname + '/client/public/index.html');
 });
 
 app.get('/data', async (req, res) => {
@@ -252,7 +252,7 @@ app.get('/data', async (req, res) => {
 });
 
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+    res.sendFile(path.join(__dirname, 'client/public', 'index.html'));
 });
 
 app.listen(port, () => {
