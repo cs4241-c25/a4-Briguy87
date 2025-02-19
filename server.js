@@ -33,7 +33,7 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 passport.use(new GitHubStrategy({
     clientID: 'Ov23ctRmiXeXnDnlKpYU',
     clientSecret: 'c22a4a1d34161a0941173507410cc1745e069fa6',
-    callbackURL: 'http://localhost:3000/auth/github/callback'
+    callbackURL: 'https://a4-brian-borghesani.glitch.me//auth/github/callback'
 },
     async (accessToken, refreshToken, profile, done) => {
         try {
