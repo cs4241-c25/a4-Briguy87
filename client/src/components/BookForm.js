@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function BookForm({ user }) {
+function BookForm({ user, handleLogout, fetchData }) {
     const [title, setTitle] = useState('');
     const [author, setAuthor] = useState('');
     const [year, setYear] = useState('');
@@ -19,13 +19,14 @@ function BookForm({ user }) {
             setTitle('');
             setAuthor('');
             setYear('');
+            fetchData(); // Fetch the updated list of books
         } else {
             alert('Error adding book');
         }
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="book-form">
             <div>
                 <label>Title:</label>
                 <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
@@ -38,7 +39,10 @@ function BookForm({ user }) {
                 <label>Year:</label>
                 <input type="number" value={year} onChange={(e) => setYear(e.target.value)} required />
             </div>
-            <button type="submit">Submit</button>
+            <div className="button-group">
+                <button type="submit">Add Book</button>
+                <button type="button" onClick={handleLogout}>Logout</button>
+            </div>
         </form>
     );
 }

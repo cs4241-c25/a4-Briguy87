@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import LoginForm from './components/LoginForm';
 import BookForm from './components/BookForm';
 import BookList from './components/BookList';
-import { Button } from '@mui/material';
-
 
 function App() {
     const [user, setUser] = useState(null);
+    const [books, setBooks] = useState([]);
 
     useEffect(() => {
         const storedUsername = localStorage.getItem('username');
@@ -16,20 +15,41 @@ function App() {
         }
     }, []);
 
-    const autoLogin = async (username, password) => {
-        const response = await fetch('/login', {
-            method: 'POST',
+    const autoLogin = async function (username, password) {
+        const response = await fetch("/login", {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json'
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({ username, password })
         });
 
         if (response.ok) {
-            setUser({ username, password });
+            alert("Auto login successful");
+            updateUI(username, password);
         } else {
-            localStorage.removeItem('username');
-            localStorage.removeItem('password');
+            alert("Auto login failed");
+            localStorage.removeItem("username");
+            localStorage.removeItem("password");
+        }
+    };
+
+    const updateUI = function (username, password) {
+        setUser({ username, password });
+        fetchData();
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('username');
+        localStorage.removeItem('password');
+        setUser(null);
+    };
+
+    const fetchData = async () => {
+        if (user) {
+            const response = await fetch(`/data?username=${user.username}`);
+            const data = await response.json();
+            setBooks(data);
         }
     };
 
@@ -37,8 +57,8 @@ function App() {
         <div className="App">
             {user ? (
                 <>
-                    <BookForm user={user} />
-                    <BookList user={user} />
+                    <BookForm user={user} handleLogout={handleLogout} fetchData={fetchData} />
+                    <BookList user={user} books={books} fetchData={fetchData} />
                 </>
             ) : (
                 <LoginForm setUser={setUser} />

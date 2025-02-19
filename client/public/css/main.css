@@ -122,3 +122,22 @@ td {
 .edit-button:hover {
     background-color: #0056b3;
 }
+
+/* Add the new styles for the button group */
+.book-form .button-group {
+    display: flex;
+    gap: 10px; /* Adjust the gap between buttons as needed */
+}
+
+.book-form .button-group button {
+    flex: 1; /* Make buttons take equal space */
+}
+
+.book-list .button-group {
+    display: flex;
+    gap: 10px; /* Adjust the gap between buttons as needed */
+}
+
+.book-list .button-group button {
+    flex: 1; /* Make buttons take equal space */
+}

@@ -7,15 +7,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (storedUsername && storedPassword) {
         autoLogin(storedUsername, storedPassword);
+    } else {
+        checkGitHubLogin();
     }
 
-    document.querySelector("#login-form").addEventListener("submit", loginOrRegisterUser);
-    document.querySelector("#book-form").addEventListener("submit", addBook);
-    document.querySelector("#logout-button").addEventListener("click", logoutUser);
-    document.querySelector("#github-login-button").addEventListener("click", () => {
-        window.location.href = "/auth/github";
-    });
+    const loginForm = document.querySelector("#login-form");
+    const bookForm = document.querySelector("#book-form");
+    const logoutButton = document.querySelector("#logout-button");
+    const githubLoginButton = document.querySelector("#github-login-button");
+
+    if (loginForm) {
+        loginForm.addEventListener("submit", loginOrRegisterUser);
+    }
+    if (bookForm) {
+        bookForm.addEventListener("submit", addBook);
+    }
+    if (logoutButton) {
+        logoutButton.addEventListener("click", logoutUser);
+    }
+    if (githubLoginButton) {
+        githubLoginButton.addEventListener("click", () => {
+            window.location.href = "/auth/github";
+        });
+    }
 });
+
+const checkGitHubLogin = async function () {
+    const response = await fetch("/session");
+    if (response.ok) {
+        const sessionData = await response.json();
+        console.log('Session data:', sessionData); // Debugging print statement
+        if (sessionData.username && sessionData.password) {
+            localStorage.setItem("username", sessionData.username);
+            localStorage.setItem("password", sessionData.password);
+            updateUI(sessionData.username, sessionData.password);
+        }
+    } else {
+        console.error('Failed to fetch session data'); // Debugging print statement
+    }
+};
 
 const autoLogin = async function (username, password) {
     const response = await fetch("/login", {
@@ -28,9 +58,7 @@ const autoLogin = async function (username, password) {
 
     if (response.ok) {
         alert("Auto login successful");
-        document.querySelector("#main-content").style.display = "block";
-        document.querySelector("#login-form").style.display = "none";
-        fetchData();
+        updateUI(username, password);
     } else {
         alert("Auto login failed");
         localStorage.removeItem("username");
@@ -38,32 +66,19 @@ const autoLogin = async function (username, password) {
     }
 };
 
-document.addEventListener("DOMContentLoaded", async () => {
-    const storedUsername = localStorage.getItem("username");
-    const storedPassword = localStorage.getItem("password");
-
-    if (storedUsername && storedPassword) {
-        await autoLogin(storedUsername, storedPassword);
-    } else {
-        // Check if the session contains GitHub login data
-        const response = await fetch("/session");
-        if (response.ok) {
-            const sessionData = await response.json();
-            if (sessionData.username && sessionData.password) {
-                localStorage.setItem("username", sessionData.username);
-                localStorage.setItem("password", sessionData.password);
-                await autoLogin(sessionData.username, sessionData.password);
-            }
-        }
+const updateUI = function (username, password) {
+    const mainContent = document.querySelector("#main-content");
+    const loginForm = document.querySelector("#login-form");
+    const bookForm = document.querySelector("#book-form");
+    const logoutButton = document.querySelector("#logout-button");
+    if (mainContent && loginForm && bookForm && logoutButton) {
+        mainContent.style.display = "block";
+        loginForm.style.display = "none";
+        bookForm.style.display = "block";
+        logoutButton.style.display = "block";
     }
-
-    document.querySelector("#login-form").addEventListener("submit", loginOrRegisterUser);
-    document.querySelector("#book-form").addEventListener("submit", addBook);
-    document.querySelector("#logout-button").addEventListener("click", logoutUser);
-    document.querySelector("#github-login-button").addEventListener("click", () => {
-        window.location.href = "/auth/github";
-    });
-});
+    fetchData();
+};
 
 const loginOrRegisterUser = async function (event) {
     event.preventDefault();
@@ -82,9 +97,7 @@ const loginOrRegisterUser = async function (event) {
         localStorage.setItem("username", username);
         localStorage.setItem("password", password);
         alert("Login successful");
-        document.querySelector("#main-content").style.display = "block";
-        document.querySelector("#login-form").style.display = "none";
-        fetchData();
+        updateUI(username, password);
     } else if (response.status === 401) {
         const registerResponse = await fetch("/register", {
             method: "POST",
@@ -98,9 +111,7 @@ const loginOrRegisterUser = async function (event) {
             localStorage.setItem("username", username);
             localStorage.setItem("password", password);
             alert("User registered successfully");
-            document.querySelector("#main-content").style.display = "block";
-            document.querySelector("#login-form").style.display = "none";
-            fetchData();
+            updateUI(username, password);
         } else if (registerResponse.status === 400) {
             alert("Username already exists");
         } else {
@@ -114,8 +125,16 @@ const loginOrRegisterUser = async function (event) {
 const logoutUser = function () {
     localStorage.removeItem("username");
     localStorage.removeItem("password");
-    document.querySelector("#main-content").style.display = "none";
-    document.querySelector("#login-form").style.display = "block";
+    const mainContent = document.querySelector("#main-content");
+    const loginForm = document.querySelector("#login-form");
+    const bookForm = document.querySelector("#book-form");
+    const logoutButton = document.querySelector("#logout-button");
+    if (mainContent && loginForm && bookForm && logoutButton) {
+        mainContent.style.display = "none";
+        loginForm.style.display = "block";
+        bookForm.style.display = "none";
+        logoutButton.style.display = "none";
+    }
 };
 
 const addBook = async function (event) {

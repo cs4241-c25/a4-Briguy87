@@ -37,6 +37,10 @@ function LoginForm({ setUser }) {
         }
     };
 
+    const handleGitHubLogin = () => {
+        window.location.href = '/auth/github';
+    };
+
     return (
         <form onSubmit={handleSubmit}>
             <div>
@@ -48,6 +52,7 @@ function LoginForm({ setUser }) {
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
             <button type="submit">Login/Register</button>
+            <button type="button" onClick={handleGitHubLogin}>Login with GitHub</button>
         </form>
     );
 }

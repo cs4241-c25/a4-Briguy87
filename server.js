@@ -15,22 +15,12 @@ const mongoUrl = 'mongodb://localhost:27017/';
 const dbName = 'a4';
 let collection;
 
-
 async function connectToDatabase() {
-    try {
-        const client = await MongoClient.connect(mongoUrl);
-        const db = client.db(dbName);
-        collection = db.collection('a_test');
-        console.log('Connected to the database');
-
-        // Perform database operations here
-        // Example: const docs = await collection.find({}).toArray();
-        // console.log(docs);
-
-    } catch (err) {
-        console.error('Failed to connect to the database. Error:', err);
-        process.exit(1);
-    }
+    const client = new MongoClient(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
+    await client.connect();
+    console.log('Connected to database');
+    const db = client.db(dbName);
+    collection = db.collection('users');
 }
 
 connectToDatabase();
@@ -49,15 +39,15 @@ passport.use(new GitHubStrategy({
         try {
             let user = await collection.findOne({ githubId: profile.id });
             if (!user) {
-                user = await collection.insertOne({ username: profile.username, githubId: profile.id });
+                const result = await collection.insertOne({ username: profile.username, githubId: profile.id });
+                user = result.ops[0];
             }
             console.log('GitHub user:', user);
             return done(null, user);
         } catch (err) {
             return done(err);
         }
-    }
-));
+    }));
 
 passport.serializeUser((user, done) => {
     if (user && user._id) {
@@ -81,7 +71,6 @@ passport.deserializeUser(async (id, done) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
-
 app.get('/auth/github',
     passport.authenticate('github'));
 
@@ -91,12 +80,14 @@ app.get('/auth/github/callback',
         // Store the GitHub username and GitHub ID in the session
         req.session.username = req.user.username;
         req.session.password = req.user.githubId;
+        console.log('GitHub callback session:', req.session); // Debugging print statement
         res.redirect('/');
     });
 
 app.get('/session', (req, res) => {
-    if (req.session.username && req.session.password) {
-        res.json({ username: req.session.username, password: req.session.password });
+    console.log('Session check:', req.session); // Debugging print statement
+    if (req.isAuthenticated()) {
+        res.json({ username: req.user.username, password: req.user.githubId });
     } else {
         res.status(401).send('No session data');
     }
@@ -119,9 +110,14 @@ app.post('/register', async (req, res) => {
         if (existingUser) {
             return res.status(400).send('Username already exists');
         }
-        const newUser = { username, password };
-        await collection.insertOne(newUser);
-        res.status(201).send('User registered');
+        const result = await collection.insertOne({ username, password });
+        const user = result.ops[0];
+        req.login(user, (err) => {
+            if (err) {
+                return res.status(500).send('Registration failed');
+            }
+            return res.json({ success: true });
+        });
     } catch (err) {
         console.error('Error registering user:', err);
         res.status(500).send('Error registering user');
@@ -130,7 +126,7 @@ app.post('/register', async (req, res) => {
 
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
-
+    console.log('Login attempt:', { username, password }); // Debugging print statement
     if (!collection) {
         console.error('Database not initialized');
         return res.status(500).send('Database not initialized');
@@ -143,116 +139,66 @@ app.post('/login', async (req, res) => {
                 { githubId: password }
             ]
         }); if (user) {
-            req.session.user = user;
-            res.status(200).send('Login successful');
+            req.login(user, (err) => {
+                if (err) {
+                    return res.status(500).send('Login failed');
+                }
+                console.log('Login successful:', user); // Debugging print statement
+                return res.json({ success: true });
+            });
         } else {
-            res.status(401).send('Invalid username or password');
+            res.status(401).send('Invalid credentials');
         }
     } catch (err) {
-        console.error('Error logging in:', err);
-        res.status(500).send('Error logging in');
-    }
-});
-
-
-
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/client/public/index.html');
-});
-
-app.get('/data', async (req, res) => {
-    const username = req.query.username;
-    if (!collection) {
-        console.error('Database not initialized');
-        return res.status(500).send('Database not initialized');
-    }
-    try {
-        const userData = await collection.find({ username }).toArray();
-        // Filter out objects with a password field
-        const filteredData = userData.filter(item => !item.password);
-        res.json(filteredData);
-    } catch (err) {
-        console.error('Error fetching data:', err);
-        res.status(500).send('Error fetching data');
+        console.error('Error logging in user:', err);
+        res.status(500).send('Error logging in user');
     }
 });
 
 app.post('/add', async (req, res) => {
-    const newData = req.body;
-    const currentYear = new Date().getFullYear();
-    newData.age = currentYear - newData.year;
+    const { title, author, year, username } = req.body;
     if (!collection) {
         console.error('Database not initialized');
         return res.status(500).send('Database not initialized');
     }
     try {
-        // Insert new data
-        await collection.insertOne(newData);
-        const userData = await collection.find({ username: newData.username }).toArray();
-        // Filter out objects with a password field
-        const filteredData = userData.filter(item => !item.password);
-        res.status(200).json(filteredData);
+        const result = await collection.insertOne({ title, author, year, username });
+        res.json(result.ops[0]);
     } catch (err) {
-        console.error('Error adding data:', err);
-        res.status(500).send('Error adding data');
-    }
-});
-
-app.put('/update/:id', async (req, res) => {
-    const id = req.params.id;
-    const updatedData = req.body;
-    const currentYear = new Date().getFullYear();
-    updatedData.age = currentYear - updatedData.year;
-    if (!collection) {
-        console.error('Database not initialized');
-        return res.status(500).send('Database not initialized');
-    }
-    try {
-        await collection.updateOne({ _id: new ObjectId(id) }, { $set: updatedData });
-        const userData = await collection.find({ username: updatedData.username, password: updatedData.password }).toArray();
-        res.status(200).json(userData);
-    } catch (err) {
-        console.error('Error updating data:', err);
-        res.status(500).send('Error updating data');
-    }
-});
-
-app.delete('/delete/:id', async (req, res) => {
-    const id = req.params.id;
-    const username = req.query.username;
-    const password = req.query.password;
-    if (!collection) {
-        console.error('Database not initialized');
-        return res.status(500).send('Database not initialized');
-    }
-    try {
-        await collection.deleteOne({ _id: new ObjectId(id), username, password });
-        const userData = await collection.find({ username, password }).toArray();
-        res.status(200).json(userData);
-    } catch (err) {
-        console.error('Error deleting data:', err);
-        res.status(500).send('Error deleting data');
+        console.error('Error adding book:', err);
+        res.status(500).send('Error adding book');
     }
 });
 
 app.get('/data', async (req, res) => {
-    const username = req.query.username;
-    const password = req.query.password;
+    const { username } = req.query;
     if (!collection) {
         console.error('Database not initialized');
         return res.status(500).send('Database not initialized');
     }
     try {
-        const userData = await collection.find({ username, password }).toArray();
-        res.json(userData);
+        const books = await collection.find({ username }).toArray();
+        res.json(books);
     } catch (err) {
         console.error('Error fetching data:', err);
         res.status(500).send('Error fetching data');
     }
 });
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/public', 'index.html'));
+app.delete('/delete/:id', async (req, res) => {
+    const { id } = req.params;
+    const { username } = req.query;
+    if (!collection) {
+        console.error('Database not initialized');
+        return res.status(500).send('Database not initialized');
+    }
+    try {
+        await collection.deleteOne({ _id: new ObjectId(id), username });
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error deleting book:', err);
+        res.status(500).send('Error deleting book');
+    }
 });
 
 app.listen(port, () => {
