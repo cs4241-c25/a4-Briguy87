@@ -12,6 +12,8 @@ function App() {
         const storedPassword = localStorage.getItem('password');
         if (storedUsername && storedPassword) {
             autoLogin(storedUsername, storedPassword);
+        } else {
+            checkGitHubLogin();
         }
     }, []);
 
@@ -31,6 +33,21 @@ function App() {
             alert("Auto login failed");
             localStorage.removeItem("username");
             localStorage.removeItem("password");
+        }
+    };
+
+    const checkGitHubLogin = async function () {
+        const response = await fetch("/session");
+        if (response.ok) {
+            const sessionData = await response.json();
+            console.log('Session data:', sessionData); // Debugging print statement
+            if (sessionData.username && sessionData.password) {
+                localStorage.setItem("username", sessionData.username);
+                localStorage.setItem("password", sessionData.password);
+                updateUI(sessionData.username, sessionData.password);
+            }
+        } else {
+            console.error('Failed to fetch session data'); // Debugging print statement
         }
     };
 
