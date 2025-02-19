@@ -162,7 +162,9 @@ app.post('/add', async (req, res) => {
         return res.status(500).send('Database not initialized');
     }
     try {
-        const result = await collection.insertOne({ title, author, year, username });
+        const currentYear = new Date().getFullYear();
+        const age = currentYear - year;
+        const result = await collection.insertOne({ title, author, year, age, username });
         res.json(result.ops[0]);
     } catch (err) {
         console.error('Error adding book:', err);

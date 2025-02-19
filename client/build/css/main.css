@@ -2,14 +2,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
 body {
-    background: black;
-    color: white;
+    background-color: white; /* Change background color to white */
+    color: black; /* Ensure text color is readable on white background */
     font-family: 'Roboto', sans-serif;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
 h1, h2 {
@@ -60,16 +55,16 @@ th, td {
 }
 
 th {
-    background-color: #333;
+    background-color: #f0f0f0; /* Change header background color to light grey */
 }
 
 td {
-    background-color: #444;
+    background-color: #ffffff; /* Change cell background color to white */
 }
 
 /* ID Selectors */
 #header {
-    background-color: #000000;
+    background-color: #ffffff; /* Change header background color to white */ /* Change header background color to white */
     padding: 20px;
     text-align: center;
 }
@@ -77,13 +72,13 @@ td {
 #main-content {
     margin: 20px;
     padding: 20px;
-    background-color: #7c4646;
+    background-color: #ffffff; /* Change main content background color to white */ /* Change main content background color to white */
     border: 1px solid #ddd;
 }
 
 #footer {
-    background-color: #333;
-    color: white;
+    background-color: #f0f0f0; /* Change footer background color to light grey */
+    color: black; /* Ensure text color is readable on light grey background */
     text-align: center;
     padding: 10px;
 }
@@ -93,7 +88,7 @@ td {
     width: 80%;
     margin: 0 auto;
     padding: 20px;
-    background-color: #f9f9f9;
+    background-color: #ffffff; /* Change container background color to white */ /* Change container background color to white */
     border: 1px solid #ddd;
 }
 

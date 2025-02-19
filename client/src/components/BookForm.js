@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { TextField, Button, Box } from '@mui/material';
 
 function BookForm({ user, handleLogout, fetchData }) {
     const [title, setTitle] = useState('');
@@ -26,24 +27,31 @@ function BookForm({ user, handleLogout, fetchData }) {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="book-form">
-            <div>
-                <label>Title:</label>
-                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
-            </div>
-            <div>
-                <label>Author:</label>
-                <input type="text" value={author} onChange={(e) => setAuthor(e.target.value)} required />
-            </div>
-            <div>
-                <label>Year:</label>
-                <input type="number" value={year} onChange={(e) => setYear(e.target.value)} required />
-            </div>
-            <div className="button-group">
-                <button type="submit">Add Book</button>
-                <button type="button" onClick={handleLogout}>Logout</button>
-            </div>
-        </form>
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+                label="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+            />
+            <TextField
+                label="Author"
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+                required
+            />
+            <TextField
+                label="Year"
+                type="number"
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                required
+            />
+            <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button type="submit" variant="contained" color="primary">Add Book</Button>
+                <Button type="button" onClick={handleLogout} variant="contained" color="secondary">Logout</Button>
+            </Box>
+        </Box>
     );
 }
 

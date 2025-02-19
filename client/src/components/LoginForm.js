@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button, TextField, Box } from '@mui/material';
 
 function LoginForm({ setUser }) {
     const [username, setUsername] = useState('');
@@ -42,18 +43,23 @@ function LoginForm({ setUser }) {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div>
-                <label>Username:</label>
-                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required />
-            </div>
-            <div>
-                <label>Password:</label>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            </div>
-            <button type="submit">Login/Register</button>
-            <button type="button" onClick={handleGitHubLogin}>Login with GitHub</button>
-        </form>
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+                label="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+            />
+            <TextField
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+            />
+            <Button type="submit" variant="contained" color="primary">Login/Register</Button>
+            <Button type="button" onClick={handleGitHubLogin} variant="contained" color="secondary">Login with GitHub</Button>
+        </Box>
     );
 }
 

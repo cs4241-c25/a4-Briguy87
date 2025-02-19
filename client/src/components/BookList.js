@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TextField, Box } from '@mui/material';
 
 function BookList({ user, books, fetchData }) {
     const [editBook, setEditBook] = useState(null);
@@ -40,66 +41,64 @@ function BookList({ user, books, fetchData }) {
     return (
         <div>
             {editBook && (
-                <form onSubmit={handleUpdate}>
-                    <label>
-                        Title:
-                        <input
-                            type="text"
-                            name="title"
-                            value={editBook.title}
-                            onChange={handleChange}
-                            required
-                        />
-                    </label>
-                    <label>
-                        Author:
-                        <input
-                            type="text"
-                            name="author"
-                            value={editBook.author}
-                            onChange={handleChange}
-                            required
-                        />
-                    </label>
-                    <label>
-                        Year:
-                        <input
-                            type="number"
-                            name="year"
-                            value={editBook.year}
-                            onChange={handleChange}
-                            required
-                        />
-                    </label>
-                    <button type="submit">Update</button>
-                    <button type="button" onClick={() => setEditBook(null)}>Cancel</button>
-                </form>
+                <Box component="form" onSubmit={handleUpdate} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <TextField
+                        label="Title"
+                        name="title"
+                        value={editBook.title}
+                        onChange={handleChange}
+                        required
+                    />
+                    <TextField
+                        label="Author"
+                        name="author"
+                        value={editBook.author}
+                        onChange={handleChange}
+                        required
+                    />
+                    <TextField
+                        label="Year"
+                        name="year"
+                        type="number"
+                        value={editBook.year}
+                        onChange={handleChange}
+                        required
+                    />
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Button type="submit" variant="contained" color="primary">Update</Button>
+                        <Button type="button" onClick={() => setEditBook(null)} variant="contained" color="secondary">Cancel</Button>
+                    </Box>
+                </Box>
             )}
-            <table>
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Author</th>
-                        <th>Year</th>
-                        <th>Age</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {books.filter(book => book.title).map((book) => (
-                        <tr key={book._id}>
-                            <td>{book.title}</td>
-                            <td>{book.author}</td>
-                            <td>{book.year}</td>
-                            <td>{book.age}</td>
-                            <td className="button-group">
-                                <button className="edit-button" onClick={() => handleEdit(book)}>Edit</button>
-                                <button className="delete-button" onClick={() => handleDelete(book._id)}>Delete</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <TableContainer component={Paper}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Title</TableCell>
+                            <TableCell>Author</TableCell>
+                            <TableCell>Year</TableCell>
+                            <TableCell>Age</TableCell>
+                            <TableCell>Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {books.filter(book => book.title).map((book) => (
+                            <TableRow key={book._id}>
+                                <TableCell>{book.title}</TableCell>
+                                <TableCell>{book.author}</TableCell>
+                                <TableCell>{book.year}</TableCell>
+                                <TableCell>{book.age}</TableCell>
+                                <TableCell>
+                                    <Box sx={{ display: 'flex', gap: 2 }}>
+                                        <Button variant="contained" color="primary" onClick={() => handleEdit(book)}>Edit</Button>
+                                        <Button variant="contained" color="secondary" onClick={() => handleDelete(book._id)}>Delete</Button>
+                                    </Box>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
         </div>
     );
 }
