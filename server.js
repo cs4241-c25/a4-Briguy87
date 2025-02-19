@@ -11,7 +11,7 @@ const port = 3000;
 const app = express();
 app.use(bodyParser.json());
 
-const mongoUrl = 'mongodb://localhost:27017/';
+const mongoUrl = 'mongodb+srv://Brian:yjXQrO9pPNYuXqiz@cluster0.ovbxd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 const dbName = 'a4';
 let collection;
 
